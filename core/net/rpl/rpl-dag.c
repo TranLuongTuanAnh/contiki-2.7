@@ -1094,7 +1094,7 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
 #endif /* DEBUG */
 
   return_value = 1;
-  if(!acceptable_rank(p->dag, p->rank) || p->rank >= p->dag->rank) {
+  if(!acceptable_rank(p->dag, p->rank)) {
     /* The candidate parent is no longer valid: the rank increase resulting
        from the choice of it as a parent would be too high. */
     printf("RPL: Unacceptable rank %u\n", (unsigned)p->rank);

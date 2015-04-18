@@ -178,7 +178,7 @@
 #ifdef  RPL_CONF_MOP
 #define RPL_MOP_DEFAULT                 RPL_CONF_MOP
 #else
-#define RPL_MOP_DEFAULT                 RPL_MOP_STORING_NO_MULTICAST
+#define RPL_MOP_DEFAULT                 RPL_MOP_NO_DOWNWARD_ROUTES
 #endif
 
 /*
