@@ -55,7 +55,7 @@
 #ifdef RPL_CONF_DAG_MC
 #define RPL_DAG_MC RPL_CONF_DAG_MC
 #else
-#define RPL_DAG_MC RPL_DAG_MC_ETX
+#define RPL_DAG_MC RPL_DAG_MC_TOTALENERGY
 #endif /* RPL_CONF_DAG_MC */
 
 /*

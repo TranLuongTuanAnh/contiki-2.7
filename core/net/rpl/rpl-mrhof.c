@@ -223,10 +223,10 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
   /* Maintain stability of the preferred parent in case of similar ranks. */
   if(p1 == dag->preferred_parent || p2 == dag->preferred_parent) {
     if((p1_metric <= p2_metric && p2_metric - p1_metric < min_diff) || (p2_metric <= p1_metric && p1_metric - p2_metric <min_diff) ) {
-      printf("RPL: MRHOF hysteresis: %u <= %u <= %u\n",
-             p2_metric - min_diff,
-             p1_metric,
-             p2_metric + min_diff);
+      if(p1_metric<=p2_metric)
+        printf("Hysteresis: p1_metric >= p2_metric - min_diff(%u >= %u - %u = %u)\n", p1_metric, p2_metric, min_diff, p2_metric - min_diff );
+      else
+        printf("Hysteresis: p2_metric >= p1_metric - min_diff(%u >= %u - %u = %u)\n", p2_metric, p1_metric, min_diff, p1_metric - min_diff );
     return dag->preferred_parent;
     }
 
