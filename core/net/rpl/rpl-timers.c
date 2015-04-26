@@ -119,7 +119,7 @@ new_dio_interval(rpl_instance_t *instance)
   instance->dio_counter = 0;
 
   /* schedule the timer */
-  PRINTF("RPL: Scheduling DIO timer %lu ticks in future (Interval)\n", ticks);
+  printf("RPL: Scheduling DIO timer %lu ticks in future (Interval)\n", ticks);
   ctimer_set(&instance->dio_timer, ticks, &handle_dio_timer, instance);
 }
 /*---------------------------------------------------------------------------*/
@@ -129,12 +129,12 @@ handle_dio_timer(void *ptr)
   rpl_instance_t *instance;
 
   instance = (rpl_instance_t *)ptr;
-  PRINTF("RPL: DIO Timer triggered\n");
+  printf("RPL: DIO Timer triggered\n");
   if(!dio_send_ok) {
     if(uip_ds6_get_link_local(ADDR_PREFERRED) != NULL) {
       dio_send_ok = 1;
     } else {
-      PRINTF("RPL: Postponing DIO transmission since link local address is not ok\n");
+      printf("RPL: Postponing DIO transmission since link local address is not ok\n");
       ctimer_set(&instance->dio_timer, CLOCK_SECOND, &handle_dio_timer, instance);
       return;
     }
@@ -148,18 +148,18 @@ handle_dio_timer(void *ptr)
 #endif /* RPL_CONF_STATS */
       dio_output(instance, NULL);
     } else {
-      PRINTF("RPL: Supressing DIO transmission (%d >= %d)\n",
+      printf("RPL: Supressing DIO transmission (%d >= %d)\n",
              instance->dio_counter, instance->dio_redundancy);
     }
     instance->dio_send = 0;
-    PRINTF("RPL: Scheduling DIO timer %lu ticks in future (sent)\n",
+    printf("RPL: Scheduling DIO timer %lu ticks in future (sent)\n",
            instance->dio_next_delay);
     ctimer_set(&instance->dio_timer, instance->dio_next_delay, handle_dio_timer, instance);
   } else {
     /* check if we need to double interval */
     if(instance->dio_intcurrent < instance->dio_intmin + instance->dio_intdoubl) {
       instance->dio_intcurrent++;
-      PRINTF("RPL: DIO Timer interval doubled %d\n", instance->dio_intcurrent);
+      printf("RPL: DIO Timer interval doubled %d\n", instance->dio_intcurrent);
     }
     new_dio_interval(instance);
   }

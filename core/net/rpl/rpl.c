@@ -90,7 +90,7 @@ rpl_purge_routes(void)
       uip_ipaddr_copy(&prefix, &r->ipaddr);
       uip_ds6_route_rm(r);
       r = uip_ds6_route_head();
-      PRINTF("No more routes to ");
+      printf("No more routes to ");
       PRINT6ADDR(&prefix);
       dag = default_instance->current_dag;
       /* Propagate this information with a No-Path DAO to preferred parent if we are not a RPL Root */
@@ -168,7 +168,7 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 }
 /*---------------------------------------------------------------------------*/
 void
-rpl_link_neighbor_callback(const rimeaddr_t *addr, int status, int numtx)
+rpl_link_neighbor_callback(const rimeaddr_t *addr, int status, int numtx)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 {
   uip_ipaddr_t ipaddr;
   rpl_parent_t *parent;
@@ -184,7 +184,7 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int status, int numtx)
       if(parent != NULL) {
         /* Trigger DAG rank recalculation. */
         PRINTF("RPL: rpl_link_neighbor_callback triggering update\n");
-        parent->updated = 1;
+        // parent->updated = 1;
         if(instance->of->neighbor_link_callback != NULL) {
           instance->of->neighbor_link_callback(parent, status, numtx);
         }

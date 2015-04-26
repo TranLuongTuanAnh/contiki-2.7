@@ -500,7 +500,6 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
       buffer[pos++] = 2;
       set16(buffer, pos, instance->mc.obj.total_energy);
       pos += 2;
-      printf("total_energy: %d\n", instance->mc.obj.total_energy);
     }
     else {
       printf("RPL: Unable to send DIO because of unhandled DAG MC type %u\n",

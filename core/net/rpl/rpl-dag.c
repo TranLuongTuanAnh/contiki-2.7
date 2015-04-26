@@ -542,7 +542,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
    * Typically, the parent is added upon receiving a DIO. */
   uip_lladdr_t *lladdr = uip_ds6_nbr_lladdr_from_ipaddr(addr);
 
-  printf("RPL: rpl_add_parent lladdr %p\n", lladdr);
+  PRINTF("RPL: rpl_add_parent lladdr %p\n", lladdr);
   if(lladdr != NULL) {
     /* Add parent in rpl_parents */
     p = nbr_table_add_lladdr(rpl_parents, (rimeaddr_t *)lladdr);
@@ -553,6 +553,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
 #if RPL_DAG_MC != RPL_DAG_MC_NONE
     memcpy(&p->mc, &dio->mc, sizeof(p->mc));
 #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
+    p->updated = 1;
   }
 
   return p;
@@ -599,6 +600,10 @@ rpl_find_parent_any_dag(rpl_instance_t *instance, uip_ipaddr_t *addr)
   }
 }
 /*---------------------------------------------------------------------------*/
+
+/*
+* find best dag in instance and set it for best_dag variable.
+*/
 rpl_dag_t *
 rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
 {
@@ -610,7 +615,7 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
   last_parent = instance->current_dag->preferred_parent;
 
   best_dag = instance->current_dag;
-  if(best_dag->rank != ROOT_RANK(instance)) { // node not root node
+  if(best_dag->rank != ROOT_RANK(instance)) { // node not root
     if(rpl_select_parent(p->dag) != NULL) {   // 
       if(p->dag != best_dag) {                // if candidate parent's dag not best dag of this node.chose best dag between them.
         best_dag = instance->of->best_dag(best_dag, p->dag);
@@ -702,7 +707,19 @@ rpl_select_parent(rpl_dag_t *dag)
   best = NULL;
 
   p = nbr_table_head(rpl_parents);
-  while(p != NULL) {
+
+  while(p != NULL){
+    if (p->dag == dag && p->dag->instance && !p->updated){
+      // printf("parent: ");
+      // printAddress(rpl_get_parent_ipaddr(p));
+      // printf(" not yet update\n");
+      return dag->preferred_parent;
+    }
+    p = nbr_table_next(rpl_parents, p);
+  }
+
+  p = nbr_table_head(rpl_parents);
+  while(p != NULL && p->dag == dag ) {
     if(p->rank == INFINITE_RANK) {
       /* ignore this neighbor */
     } else if(best == NULL) {
@@ -710,6 +727,7 @@ rpl_select_parent(rpl_dag_t *dag)
     } else {
       best = dag->instance->of->best_parent(best, p);
     }
+    p->updated = 0;
     p = nbr_table_next(rpl_parents, p);
   }
 
@@ -718,6 +736,7 @@ rpl_select_parent(rpl_dag_t *dag)
     printf("best parent:");
     printAddress(rpl_get_parent_ipaddr(best));
     printf("\n");
+    // dis_output(rpl_get_parent_ipaddr(best));
   }
 
   return best;
@@ -1068,13 +1087,34 @@ rpl_recalculate_ranks(void)
    * than RPL protocol messages. This periodical recalculation is called
    * from a timer in order to keep the stack depth reasonably low.
    */
+
+  
+  // p = nbr_table_head(rpl_parents);
+
+  // while(p != NULL){
+  //   if (p->dag != NULL && p->dag->instance && !p->updated){
+  //     printf("parent: ");
+  //     printAddress(rpl_get_parent_ipaddr(p));
+  //     printf(" not yet update\n");
+  //     return;
+  //   }
+  //   p = nbr_table_next(rpl_parents, p);
+  // }
+   // printf("recalculate rank call\n");
+   // printf("RPL: rpl_process_parent_event recalculate_ranks\n");
   p = nbr_table_head(rpl_parents);
   while(p != NULL) {
+    // printf("candidate process parent:");
+    // printAddress(rpl_get_parent_ipaddr(p));
+    // printf("\n");
     if(p->dag != NULL && p->dag->instance && p->updated) {
-      p->updated = 0;
-      printf("RPL: rpl_process_parent_event recalculate_ranks\n");
+      // p->updated = 0;
+      // printf("RPL: rpl_process_parent_event recalculate_ranks\n");
       //printf("parent rank : %d\n", p->rank );
       //printf("parent link_metric : %d \n", p->link_metric);
+      // printf("parent address: ");
+      // printAddress(rpl_get_parent_ipaddr(p));
+      // printf("\n");
       if(!rpl_process_parent_event(p->dag->instance, p)) {
         printf("RPL: A parent was dropped\n");
       }
@@ -1157,7 +1197,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
         printf("RPL: Global Repair\n");
         if(dio->prefix_info.length != 0) {
           if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
-            printf("RPL : Prefix announced in DIO\n");
+            PRINTF("RPL : Prefix announced in DIO\n");
             rpl_set_prefix(dag, &dio->prefix_info.prefix, dio->prefix_info.length);
           }
         }
@@ -1200,7 +1240,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   /* Prefix Information Option treated to add new prefix */
   if(dio->prefix_info.length != 0) {
     if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
-      printf("RPL : Prefix announced in DIO\n");
+      PRINTF("RPL : Prefix announced in DIO\n");
       rpl_set_prefix(dag, &dio->prefix_info.prefix, dio->prefix_info.length);
     }
   }
@@ -1241,13 +1281,14 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     }
   } else {
     if(p->rank == dio->rank) {
-      printf("RPL: Received consistent DIO\n");
+      PRINTF("RPL: Received consistent DIO\n");
       if(dag->joined) {
         instance->dio_counter++;
       }
     } else {
       p->rank=dio->rank;
     }
+    p->updated = 1;
   }
 
   printf("RPL: preferred DAG ");

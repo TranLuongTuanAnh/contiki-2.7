@@ -120,9 +120,9 @@ neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
 
   // /* Do not penalize the ETX when collisions or transmission errors occur. */
   // if(status == MAC_TX_OK || status == MAC_TX_NOACK) {
-  //   if(status == MAC_TX_NOACK) {
-  //     packet_etx = MAX_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
-  //   }
+    // if(status == MAC_TX_NOACK) {
+    //  rpl_remove_parent(p);
+    // }
 
   //   new_etx = ((uint32_t)recorded_etx * ETX_ALPHA +
   //              (uint32_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
@@ -257,7 +257,7 @@ update_metric_container(rpl_instance_t *instance)
   instance->mc.prec = 0;
 
   dag = instance->current_dag;
-  printf("update_metric_container\n");
+
   if (!dag->joined) {
     printf("RPL: Cannot update the metric container when not joined\n");
     return;
@@ -279,7 +279,6 @@ update_metric_container(rpl_instance_t *instance)
 	 RPL_DAG_MC_ETX_DIVISOR);
 #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
   instance->mc.length = sizeof(instance->mc.obj.energy);
-  printf("RPL_DAG_MC_ENERGY\n");
   if(dag->rank == ROOT_RANK(instance)) {
     type = RPL_DAG_MC_ENERGY_TYPE_MAINS;
   } else {
@@ -291,7 +290,7 @@ update_metric_container(rpl_instance_t *instance)
 #elif RPL_DAG_MC == RPL_DAG_MC_TOTALENERGY
   instance->mc.length = sizeof(instance->mc.obj.total_energy);
   instance->mc.obj.total_energy = path_metric;
-  printf("total_energy path_metric:%u\n", path_metric);
+  // printf("total_energy path_metric:%u\n", path_metric);
 
 #endif /* RPL_DAG_MC == RPL_DAG_MC_ETX */
 }
