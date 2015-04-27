@@ -71,7 +71,7 @@ static void
 tcpip_handler(void)
 {
   char *str;
-
+  printf("tcpip_handler brige\n");
   if(uip_newdata()) {
     str = uip_appdata;
     str[uip_datalen()] = '\0';

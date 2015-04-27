@@ -1108,11 +1108,11 @@ uip_process(uint8_t flag)
     goto drop;
   }
   
-  PRINTF("IPv6 packet received from ");
-  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-  PRINTF(" to ");
-  PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("\n");
+  printf("IPv6 packet received from ");
+  printAddress(&UIP_IP_BUF->srcipaddr);
+  printf(" to ");
+  printAddress(&UIP_IP_BUF->destipaddr);
+  printf("\n");
 
   if(uip_is_addr_mcast(&UIP_IP_BUF->srcipaddr)){
     UIP_STAT(++uip_stat.ip.drop);
@@ -1181,9 +1181,9 @@ uip_process(uint8_t flag)
 #endif /* UIP_CONF_IPV6_RPL */
 
       UIP_IP_BUF->ttl = UIP_IP_BUF->ttl - 1;
-      PRINTF("Forwarding packet to ");
-      PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-      PRINTF("\n");
+      printf("Forwarding packet to ");
+      printAddress(&UIP_IP_BUF->destipaddr);
+      printf("\n");
       UIP_STAT(++uip_stat.ip.forwarded);
       goto send;
     } else {
