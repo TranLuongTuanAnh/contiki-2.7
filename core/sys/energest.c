@@ -115,9 +115,9 @@ energest_flush(void)
 /*---------------------------------------------------------------------------*/
 uint16_t get_total_energy_consumption()
 {
-  unsigned long energy_consumed = 0;
-  unsigned long cpu, lpm, transmit, listen;
-  unsigned long time;
+  uint32_t energy_consumed = 0;
+  uint32_t cpu, lpm, transmit, listen;
+  uint32_t  time;
 
   energest_flush();
 
@@ -128,11 +128,46 @@ uint16_t get_total_energy_consumption()
   
   time = cpu + lpm;
 
-  energy_consumed = 3L * ((cpu/RTIMER_ARCH_SECOND) * 2 + (lpm/RTIMER_ARCH_SECOND) * 1 + (transmit/RTIMER_ARCH_SECOND) * 20 + (listen/RTIMER_ARCH_SECOND) * 22);
+  energy_consumed = 3L * ((cpu/RTIMER_ARCH_SECOND) * 2 + (lpm/RTIMER_ARCH_SECOND) / 10 + (transmit/RTIMER_ARCH_SECOND) * 20 + (listen/RTIMER_ARCH_SECOND) * 22);
 
-   // printf("power consummed(mJ) : %lu\n", energy_consumed);
+  if (energy_consumed == 0)
+  {
+    return 1;
+  }
+   // printf("Node's power consummed(mJ) : %lu\n", energy_consumed);
   // printf("radio-ontime %lu %%\n", (100*(transmit+listen))/time);
   return energy_consumed; 
+}
+
+void print_total_energy()
+{
+  uint32_t all_cpu, all_lpm, all_transmit, all_listen;
+  uint32_t energy_consumed_node_cpu, energy_consumed_node_lpm, energy_consumed_node_rx, energy_consumed_node_tx;
+
+  energest_flush();
+
+  all_cpu = energest_type_time(ENERGEST_TYPE_CPU);
+  all_lpm = energest_type_time(ENERGEST_TYPE_LPM);                                      
+  all_transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT);
+  all_listen = energest_type_time(ENERGEST_TYPE_LISTEN);
+
+  energy_consumed_node_cpu = 3 * 2 * (all_cpu / RTIMER_ARCH_SECOND);
+
+  printf("energy_consumed_node_cpu = %lu\n", energy_consumed_node_cpu);
+
+  energy_consumed_node_lpm = 3 * (all_lpm / RTIMER_ARCH_SECOND) / 10 ;
+
+  printf("energy_consumed_node_lpm = %lu\n", energy_consumed_node_lpm);
+
+  energy_consumed_node_rx = 3 * 22 * (all_listen / RTIMER_ARCH_SECOND);
+  
+  printf("energy_consumed_node_rx = %lu\n",energy_consumed_node_rx);
+  
+  energy_consumed_node_tx  = 3 * 20 * (all_transmit/RTIMER_ARCH_SECOND);
+  
+  printf("energy_consumed_node_tx = %lu\n",energy_consumed_node_tx);
+
+  printf("Node' energy consumption: %u \n", get_total_energy_consumption());
 }
 /*---------------------------------------------------------------------------*/
 #else /* ENERGEST_CONF_ON */

@@ -49,7 +49,7 @@
 #include "net/uip-debug.h"
 
 #ifndef PERIOD
-#define PERIOD 60
+#define PERIOD 10
 #endif
 
 
@@ -191,7 +191,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
     if(etimer_expired(&periodic)) {
       etimer_reset(&periodic);
       ctimer_set(&backoff_timer, SEND_TIME, send_packet, NULL);
-
+      print_total_energy();
 #if WITH_COMPOWER
       if (print == 0) {
 	powertrace_print("#P");

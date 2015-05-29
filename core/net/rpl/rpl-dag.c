@@ -687,7 +687,9 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
       RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
       rpl_schedule_dao(instance);
     }
-    rpl_reset_dio_timer(instance);
+    // rpl_reset_dio_timer(instance);
+    printf("lastest version\n");
+    dio_output(instance,NULL);
   } else if(best_dag->rank != old_rank) {
     printf("RPL: Preferred parent update, rank changed from %u to %u\n",
   	(unsigned)old_rank, best_dag->rank);
@@ -745,9 +747,9 @@ rpl_select_parent(rpl_dag_t *dag)
 void
 rpl_remove_parent(rpl_parent_t *parent)
 {
-  printf("RPL: Removing parent ");
-  printAddress(rpl_get_parent_ipaddr(parent));
-  printf("\n");
+  PRINTF("RPL: Removing parent ");
+  PRINT6ADDR(rpl_get_parent_ipaddr(parent));
+  PRINTF("\n");
 
   rpl_nullify_parent(parent);
 
@@ -1251,6 +1253,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     }
     return;
   }
+
+  if (dag->rank <= dio->rank)
+    return;
   /*
    * At this point, we know that this DIO pertains to a DAG that
    * we are already part of. We consider the sender of the DIO to be
@@ -1304,7 +1309,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   memcpy(&p->mc, &dio->mc, sizeof(p->mc));
 #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
   if(rpl_process_parent_event(instance, p) == 0) {
-    printf("RPL: The candidate parent is rejected\n");
+    PRINTF("RPL: The candidate parent is rejected\n");
     return;
   }
 

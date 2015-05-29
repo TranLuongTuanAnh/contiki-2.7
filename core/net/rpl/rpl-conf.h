@@ -48,7 +48,7 @@
 /* 
  * Select routing metric supported at runtime. This must be a valid
  * DAG Metric Container Object Type (see below). Currently, we only 
- * support RPL_DAG_MC_ETX and RPL_DAG_MC_ENERGY.
+ * support RPL_DAG_MC_ETX and RPL_DAG_MC_ENERGY, RPL_DAG_MC_TOTALENERGY
  * When MRHOF (RFC6719) is used with ETX, no metric container must
  * be used; instead the rank carries ETX directly.
  */

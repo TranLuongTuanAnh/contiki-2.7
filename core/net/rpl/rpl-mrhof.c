@@ -92,6 +92,7 @@ calculate_path_metric(rpl_parent_t *p)
   if(p == NULL) {
     return MAX_PATH_COST * RPL_DAG_MC_ETX_DIVISOR;
   }
+  // printf("Node's power consumption: %u\n", get_total_energy_consumption());
 #if RPL_DAG_MC == RPL_DAG_MC_NONE
   return p->rank + (uint16_t)p->link_metric;
 #elif RPL_DAG_MC == RPL_DAG_MC_ETX
@@ -108,32 +109,35 @@ calculate_path_metric(rpl_parent_t *p)
 static void
 reset(rpl_dag_t *sag)
 {
-  printf("RPL: Reset MRHOF\n");
+  PRINTF("RPL: Reset MRHOF\n");
 }
 
 static void
 neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
 {
-  // uint16_t recorded_etx = p->link_metric;
-  // uint16_t packet_etx = numtx * RPL_DAG_MC_ETX_DIVISOR;
-  // uint16_t new_etx;
 
-  // /* Do not penalize the ETX when collisions or transmission errors occur. */
-  // if(status == MAC_TX_OK || status == MAC_TX_NOACK) {
-    // if(status == MAC_TX_NOACK) {
-    //  rpl_remove_parent(p);
-    // }
+#ifdef RPL_DAG_MC_ETX  
+  uint16_t recorded_etx = p->link_metric;
+  uint16_t packet_etx = numtx * RPL_DAG_MC_ETX_DIVISOR;
+  uint16_t new_etx;
 
-  //   new_etx = ((uint32_t)recorded_etx * ETX_ALPHA +
-  //              (uint32_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
+  /* Do not penalize the ETX when collisions or transmission errors occur. */
+  if(status == MAC_TX_OK || status == MAC_TX_NOACK) {
+    if(status == MAC_TX_NOACK) {
+     rpl_remove_parent(p);
+    }
 
-  //   PRINTF("RPL: ETX changed from %u to %u (packet ETX = %u)\n",
-  //       (unsigned)(recorded_etx / RPL_DAG_MC_ETX_DIVISOR),
-  //       (unsigned)(new_etx  / RPL_DAG_MC_ETX_DIVISOR),
-  //       (unsigned)(packet_etx / RPL_DAG_MC_ETX_DIVISOR));
-  //   p->link_metric = new_etx;
-  //   PRINTF("parent new link_metric: %d\n", (uint16_t)new_etx);
-  // }
+    new_etx = ((uint32_t)recorded_etx * ETX_ALPHA +
+               (uint32_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
+
+    PRINTF("RPL: ETX changed from %u to %u (packet ETX = %u)\n",
+        (unsigned)(recorded_etx / RPL_DAG_MC_ETX_DIVISOR),
+        (unsigned)(new_etx  / RPL_DAG_MC_ETX_DIVISOR),
+        (unsigned)(packet_etx / RPL_DAG_MC_ETX_DIVISOR));
+    p->link_metric = new_etx;
+    PRINTF("parent new link_metric: %d\n", (uint16_t)new_etx);
+  }
+  #endif /* RPL_DAG_MC_ETX */
 }
 
 static rpl_rank_t
@@ -194,16 +198,15 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
 
   dag = p1->dag; /* Both parents are in the same DAG. */
 
-  printf("best_parent\n");
   p1_metric = calculate_path_metric(p1);
-  printf("p1:");
-  printAddress(rpl_get_parent_ipaddr(p1));
-  printf(" metric %u, rank: %u\n",p1_metric, p1->rank );
+  // printf("p1:");
+  // printAddress(rpl_get_parent_ipaddr(p1));
+  // printf(" metric %u, rank: %u\n",p1_metric, p1->rank );
 
   p2_metric = calculate_path_metric(p2);
-  printf("p2:");
-  printAddress(rpl_get_parent_ipaddr(p2));
-  printf(" metric %u, rank: %u\n",p2_metric, p2->rank );
+  // printf("p2:");
+  // printAddress(rpl_get_parent_ipaddr(p2));
+  // printf(" metric %u, rank: %u\n",p2_metric, p2->rank );
 
   #if RPL_DAG_MC == RPL_DAG_MC_ENERGY || RPL_DAG_MC == RPL_DAG_MC_ETX
     min_diff = RPL_DAG_MC_ETX_DIVISOR /
@@ -211,10 +214,10 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
   #elif RPL_DAG_MC == RPL_DAG_MC_TOTALENERGY
     if (p1_metric<p2_metric)
     {
-      min_diff = 5*p1_metric/100; //5 percent past cost different between to parent 
+      min_diff = 10*p1_metric/100; //10 percent past cost different between to parent 
     }
     else
-      min_diff = 5*p2_metric/100; 
+      min_diff = 10*p2_metric/100; 
 
   #else
   #error "Unsupported RPL_DAG_MC configured. See rpl.h."
@@ -259,7 +262,7 @@ update_metric_container(rpl_instance_t *instance)
   dag = instance->current_dag;
 
   if (!dag->joined) {
-    printf("RPL: Cannot update the metric container when not joined\n");
+    PRINTF("RPL: Cannot update the metric container when not joined\n");
     return;
   }
 
@@ -273,7 +276,7 @@ update_metric_container(rpl_instance_t *instance)
   instance->mc.length = sizeof(instance->mc.obj.etx);
   instance->mc.obj.etx = path_metric;
 
-  printf("RPL: My path ETX to the root is %u.%u\n",
+  PRINTF("RPL: My path ETX to the root is %u.%u\n",
 	instance->mc.obj.etx / RPL_DAG_MC_ETX_DIVISOR,
 	(instance->mc.obj.etx % RPL_DAG_MC_ETX_DIVISOR * 100) /
 	 RPL_DAG_MC_ETX_DIVISOR);

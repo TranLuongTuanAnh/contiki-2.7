@@ -267,7 +267,7 @@ dio_input(void)
   dio.rank = get16(buffer, i);
   i += 2;
 
-  printf("RPL: Incoming DIO (id, ver, rank) = (%u,%u,%u)\n",
+  PRINTF("RPL: Incoming DIO (id, ver, rank) = (%u,%u,%u)\n",
          (unsigned)dio.instance_id,
          (unsigned)dio.version, 
          (unsigned)dio.rank);
@@ -283,9 +283,9 @@ dio_input(void)
   memcpy(&dio.dag_id, buffer + i, sizeof(dio.dag_id));
   i += sizeof(dio.dag_id);
 
-  printf("RPL: Incoming DIO (dag_id, pref) = (");
-  printAddress(&dio.dag_id);
-  printf(", %u)\n", dio.preference);
+  PRINTF("RPL: Incoming DIO (dag_id, pref) = (");
+  PRINT6ADDR(&dio.dag_id);
+  PRINTF(", %u)\n", dio.preference);
 
   /* Check if there are any DIO suboptions. */
   for(; i < buffer_length; i += len) {
@@ -336,7 +336,7 @@ dio_input(void)
         dio.mc.obj.energy.energy_est = buffer[i + 7];
       } else if(dio.mc.type == RPL_DAG_MC_TOTALENERGY) {
          dio.mc.obj.total_energy = get16(buffer, i+6); 
-         printf("RPL: DAG MC: type %u, flags %u, aggr %u, prec %u, length %u, TotalEnergy %u\n",
+         PRINTF("RPL: DAG MC: type %u, flags %u, aggr %u, prec %u, length %u, TotalEnergy %u\n",
          (unsigned)dio.mc.type,  
          (unsigned)dio.mc.flags, 
          (unsigned)dio.mc.aggr, 
@@ -344,7 +344,7 @@ dio_input(void)
          (unsigned)dio.mc.length, 
          (unsigned)dio.mc.obj.total_energy);
       } else {
-       printf("RPL: Unhandled DAG MC type: %u\n", (unsigned)dio.mc.type);
+       PRINTF("RPL: Unhandled DAG MC type: %u\n", (unsigned)dio.mc.type);
        return;
       }
       break;
@@ -499,10 +499,11 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
     } else if (instance->mc.type == RPL_DAG_MC_TOTALENERGY) {
       buffer[pos++] = 2;
       set16(buffer, pos, instance->mc.obj.total_energy);
+      PRINTF("DIO Output total_energy %u\n", instance->mc.obj.total_energy);
       pos += 2;
     }
     else {
-      printf("RPL: Unable to send DIO because of unhandled DAG MC type %u\n",
+      PRINTF("RPL: Unable to send DIO because of unhandled DAG MC type %u\n",
 	(unsigned)instance->mc.type);
       return;
     }
